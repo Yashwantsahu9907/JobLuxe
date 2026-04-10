@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
+import toast from 'react-hot-toast';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
 import { UploadCloud, Play, FileText, ChevronDown } from 'lucide-react';
@@ -60,7 +61,7 @@ const CampaignCreator = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!file || !subject || !content) {
-      alert("Please fill all fields and upload a CSV file.");
+      toast.error("Please fill all fields and upload a CSV file.");
       return;
     }
 
@@ -74,7 +75,7 @@ const CampaignCreator = () => {
       await axios.post('/api/campaigns/start', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
-      alert('Campaign started successfully!');
+      toast.success('Campaign started successfully!');
       // Reset form
       setFile(null);
       setSubject('');
@@ -82,7 +83,7 @@ const CampaignCreator = () => {
       setEmailCount(0);
       if(fileInputRef.current) fileInputRef.current.value = '';
     } catch (err) {
-      alert(err.response?.data?.error || 'Failed to start campaign');
+      toast.error(err.response?.data?.error || 'Failed to start campaign');
     } finally {
       setIsSubmitting(false);
     }

@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Play, Pause, Square, Activity } from 'lucide-react';
+import ConfirmModal from './ConfirmModal';
+import toast from 'react-hot-toast';
 
 const ActiveCampaignPanel = () => {
   const [statusData, setStatusData] = useState(null);
+  const [isStopModalOpen, setIsStopModalOpen] = useState(false);
 
   useEffect(() => {
     // Poll status every second
@@ -27,8 +30,11 @@ const ActiveCampaignPanel = () => {
   };
 
   const handleStop = async () => {
-    if (confirm('Are you sure you want to stop the campaign?')) {
+    try {
       await axios.post('/api/campaigns/stop');
+      toast.success('Campaign stopped');
+    } catch (err) {
+      toast.error('Failed to stop campaign');
     }
   };
 
@@ -80,7 +86,7 @@ const ActiveCampaignPanel = () => {
           )}
           {(isRunning || isPaused) && (
             <button
-              onClick={handleStop}
+              onClick={() => setIsStopModalOpen(true)}
               className="flex items-center gap-2 px-4 py-2 bg-red-100 text-red-700 hover:bg-red-200 rounded-lg transition-colors font-medium text-sm"
             >
               <Square size={16} /> Stop
@@ -112,6 +118,15 @@ const ActiveCampaignPanel = () => {
           </div>
         </div>
       </div>
+
+      <ConfirmModal 
+        isOpen={isStopModalOpen}
+        onClose={() => setIsStopModalOpen(false)}
+        onConfirm={handleStop}
+        title="Stop Campaign"
+        message="Are you sure you want to stop the active campaign? This will halt all pending emails."
+        confirmText="Stop Campaign"
+      />
     </div>
   );
 };

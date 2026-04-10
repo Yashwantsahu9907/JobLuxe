@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import toast from 'react-hot-toast';
 import { Download, Trash2, CheckCircle, XCircle } from 'lucide-react';
 import Papa from 'papaparse';
+import ConfirmModal from './ConfirmModal';
 
 const HistoryLogs = () => {
   const [logs, setLogs] = useState([]);
+  const [isClearModalOpen, setIsClearModalOpen] = useState(false);
 
   useEffect(() => {
     fetchLogs();
@@ -20,13 +23,12 @@ const HistoryLogs = () => {
   };
 
   const handleClearLogs = async () => {
-    if (confirm('Are you sure you want to clear all history?')) {
-      try {
-        await axios.delete('/api/logs');
-        setLogs([]);
-      } catch (err) {
-        alert('Failed to clear logs');
-      }
+    try {
+      await axios.delete('/api/logs');
+      setLogs([]);
+      toast.success('Logs cleared');
+    } catch (err) {
+      toast.error('Failed to clear logs');
     }
   };
 
@@ -50,8 +52,9 @@ const HistoryLogs = () => {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+      toast.success('Log CSV downloaded');
     } catch (err) {
-      alert('Failed to generate log CSV');
+      toast.error('Failed to generate log CSV');
     }
   };
 
@@ -70,7 +73,7 @@ const HistoryLogs = () => {
             <Download size={16} /> Download CSV
           </button>
           <button 
-            onClick={handleClearLogs}
+            onClick={() => setIsClearModalOpen(true)}
             className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-red-600 hover:bg-red-50 rounded-lg transition-colors font-medium text-sm shadow-sm"
           >
             <Trash2 size={16} /> Clear
@@ -120,6 +123,15 @@ const HistoryLogs = () => {
           </tbody>
         </table>
       </div>
+
+      <ConfirmModal 
+        isOpen={isClearModalOpen}
+        onClose={() => setIsClearModalOpen(false)}
+        onConfirm={handleClearLogs}
+        title="Clear History"
+        message="Are you sure you want to clear all email delivery history? This action cannot be undone."
+        confirmText="Clear All Logs"
+      />
     </div>
   );
 };

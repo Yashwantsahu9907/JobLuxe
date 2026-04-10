@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import toast from 'react-hot-toast';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
 import { Save, Plus, X } from 'lucide-react';
+import ConfirmModal from './ConfirmModal';
 
 const TemplateManager = () => {
   const [templates, setTemplates] = useState([]);
@@ -10,6 +12,7 @@ const TemplateManager = () => {
   const [subject, setSubject] = useState('');
   const [content, setContent] = useState('');
   const [isFormVisible, setIsFormVisible] = useState(false);
+  const [deleteModal, setDeleteModal] = useState({ isOpen: false, id: null });
 
   useEffect(() => {
     fetchTemplates();
@@ -27,30 +30,30 @@ const TemplateManager = () => {
   const handleSave = async (e) => {
     e.preventDefault();
     if (!name || !subject || !content) {
-      alert("All fields are required");
+      toast.error("All fields are required");
       return;
     }
 
     try {
       await axios.post('/api/templates', { name, subject, content });
-      alert('Template saved successfully!');
+      toast.success('Template saved successfully!');
       setName('');
       setSubject('');
       setContent('');
       setIsFormVisible(false);
       fetchTemplates();
     } catch (err) {
-      alert('Failed to save template');
+      toast.error('Failed to save template');
     }
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this template?')) return;
     try {
       await axios.delete(`/api/templates/${id}`);
       fetchTemplates();
+      toast.success('Template deleted');
     } catch (err) {
-      alert('Failed to delete template');
+      toast.error('Failed to delete template');
     }
   };
 
@@ -122,7 +125,7 @@ const TemplateManager = () => {
         {templates.map(t => (
           <div key={t._id} className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-md hover:border-slate-300 transition-all group flex flex-col h-full relative">
             <button 
-              onClick={() => handleDelete(t._id)}
+              onClick={() => setDeleteModal({ isOpen: true, id: t._id })}
               className="absolute top-4 right-4 p-1.5 bg-slate-100 text-slate-400 hover:bg-red-50 hover:text-red-500 rounded-lg transition-all opacity-0 group-hover:opacity-100"
               title="Delete Template"
             >
@@ -144,6 +147,15 @@ const TemplateManager = () => {
           </div>
         )}
       </div>
+
+      <ConfirmModal 
+        isOpen={deleteModal.isOpen}
+        onClose={() => setDeleteModal({ isOpen: false, id: null })}
+        onConfirm={() => handleDelete(deleteModal.id)}
+        title="Delete Template"
+        message="Are you sure you want to delete this template? This action cannot be undone."
+        confirmText="Delete Template"
+      />
     </div>
   );
 };
