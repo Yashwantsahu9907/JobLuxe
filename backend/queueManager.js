@@ -15,14 +15,18 @@ class QueueManager {
     this.currentIndex = 0;
     this.delayMs = parseInt(process.env.EMAIL_DELAY_MS) || 3000;
     
+    const port = process.env.SMTP_PORT || 465;
     this.transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: process.env.SMTP_PORT,
-      secure: false, // true for 465, false for other ports
+      host: process.env.SMTP_HOST || 'smtp.gmail.com',
+      port: port,
+      secure: port == 465, // true for 465, false for other ports
       auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS,
       },
+      tls: {
+        rejectUnauthorized: false
+      }
     });
   }
 
@@ -34,14 +38,18 @@ class QueueManager {
     // Override transporter with selected credentials
     if (smtpUser && smtpPass) {
       this.activeSmtpUser = smtpUser;
+      const port = process.env.SMTP_PORT || 465;
       this.transporter = nodemailer.createTransport({
-        host: process.env.SMTP_HOST,
-        port: process.env.SMTP_PORT,
-        secure: false, 
+        host: process.env.SMTP_HOST || 'smtp.gmail.com',
+        port: port,
+        secure: port == 465, 
         auth: {
           user: smtpUser,
           pass: smtpPass,
         },
+        tls: {
+          rejectUnauthorized: false
+        }
       });
     }
     this.emails = emails;
