@@ -11,13 +11,25 @@ const CampaignCreator = () => {
   const [file, setFile] = useState(null);
   const [emailCount, setEmailCount] = useState(0);
   const [templates, setTemplates] = useState([]);
+  const [accounts, setAccounts] = useState([]);
+  const [selectedAccount, setSelectedAccount] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const fileInputRef = useRef(null);
 
   useEffect(() => {
     fetchTemplates();
+    fetchAccounts();
   }, []);
+
+  const fetchAccounts = async () => {
+    try {
+      const res = await axios.get('/api/smtp');
+      setAccounts(res.data);
+    } catch (err) {
+      console.error('Failed to fetch SMTP accounts');
+    }
+  };
 
   const fetchTemplates = async () => {
     try {
@@ -68,12 +80,17 @@ const CampaignCreator = () => {
       toast.error("Please fill all fields and upload a file.");
       return;
     }
+    if (!selectedAccount) {
+      toast.error("Please select a sender account.");
+      return;
+    }
 
     setIsSubmitting(true);
     const formData = new FormData();
     formData.append('file', file);
     formData.append('subject', subject);
     formData.append('content', content);
+    formData.append('smtpAccountId', selectedAccount);
 
     try {
       await axios.post('/api/campaigns/start', formData, {
@@ -84,6 +101,7 @@ const CampaignCreator = () => {
       setFile(null);
       setSubject('');
       setContent('');
+      setSelectedAccount('');
       setEmailCount(0);
       if(fileInputRef.current) fileInputRef.current.value = '';
     } catch (err) {
@@ -153,6 +171,24 @@ const CampaignCreator = () => {
                 <option value="" disabled>Select a saved template...</option>
                 {templates.map(t => (
                   <option key={t._id} value={t._id}>{t.name}</option>
+                ))}
+              </select>
+              <ChevronDown className="absolute right-4 top-3.5 text-slate-400 pointer-events-none" size={18} />
+            </div>
+          </div>
+          
+          {/* Senders Selection */}
+          <div className="md:col-span-2">
+            <label className="block text-sm font-semibold text-slate-700 mb-2">Select Sender Account</label>
+            <div className="relative">
+              <select 
+                className="w-full border border-slate-200 rounded-xl px-4 py-3 appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-shadow bg-white text-slate-800 cursor-pointer"
+                value={selectedAccount}
+                onChange={(e) => setSelectedAccount(e.target.value)}
+              >
+                <option value="" disabled>Select an authenticated SMTP user...</option>
+                {accounts.map(acc => (
+                  <option key={acc._id} value={acc._id}>{acc.user}</option>
                 ))}
               </select>
               <ChevronDown className="absolute right-4 top-3.5 text-slate-400 pointer-events-none" size={18} />

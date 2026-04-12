@@ -1,0 +1,38 @@
+services:
+  # Backend Node.js Service
+  - type: web
+    name: jobluxe-backend
+    env: node
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: PORT
+        value: 5000
+      - key: MONGODB_URI
+        sync: false
+      - key: FRONTEND_URL
+        value: https://jobluxe-frontend.onrender.com
+      - key: JWT_SECRET
+        generateValue: true
+      - key: ADMIN_USERNAME
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: ENCRYPTION_KEY
+        generateValue: true
+
+  # Frontend Vite Static Site
+  - type: web
+    name: jobluxe-frontend
+    env: static
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: ./dist
+    envVars:
+      - key: VITE_API_URL
+        value: https://jobluxe-backend.onrender.com
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html

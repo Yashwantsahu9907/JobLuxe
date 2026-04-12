@@ -26,9 +26,23 @@ class QueueManager {
     });
   }
 
-  start(emails, subject, content) {
+  start(emails, subject, content, smtpUser, smtpPass) {
     if (this.status === 'running') {
       throw new Error('A campaign is already running');
+    }
+
+    // Override transporter with selected credentials
+    if (smtpUser && smtpPass) {
+      this.activeSmtpUser = smtpUser;
+      this.transporter = nodemailer.createTransport({
+        host: process.env.SMTP_HOST,
+        port: process.env.SMTP_PORT,
+        secure: false, 
+        auth: {
+          user: smtpUser,
+          pass: smtpPass,
+        },
+      });
     }
     this.emails = emails;
     this.subject = subject;
@@ -98,7 +112,7 @@ class QueueManager {
 
     try {
       const mailOptions = {
-        from: process.env.SMTP_USER,
+        from: this.activeSmtpUser || process.env.SMTP_USER,
         to: email,
         subject: this.subject,
         html: this.content,
