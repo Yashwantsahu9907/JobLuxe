@@ -3,6 +3,7 @@ services:
   - type: web
     name: jobluxe-backend
     env: node
+    plan: free
     rootDir: backend
     buildCommand: npm install
     startCommand: npm start
