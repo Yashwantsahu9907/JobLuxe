@@ -26,7 +26,9 @@ class QueueManager {
       },
       tls: {
         rejectUnauthorized: false
-      }
+      },
+      logger: true, // Enable built-in logger
+      debug: true   // Include SMTP traffic in the logs
     });
   }
 
@@ -49,7 +51,9 @@ class QueueManager {
         },
         tls: {
           rejectUnauthorized: false
-        }
+        },
+        logger: true, // Enable built-in logger
+        debug: true   // Include SMTP traffic in the logs
       });
     }
     this.emails = emails;
@@ -140,7 +144,12 @@ class QueueManager {
       
     } catch (error) {
       this.failed++;
-      console.error(`Failed to send email to ${email}: `, error);
+      console.error(`\n--- NODEMAILER ERROR ---`);
+      console.error(`Failed to send email to ${email}`);
+      console.error(`Error Code: ${error.code}`);
+      console.error(`Error Message: ${error.message}`);
+      console.error(error);
+      console.error(`------------------------\n`);
       
       // Log failure
       await Log.create({
