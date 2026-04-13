@@ -79,9 +79,9 @@ app.post('/api/campaigns/start', upload.single('file'), async (req, res) => {
       smtpUser = account.user;
       smtpPass = decrypt(account.password);
       
-      if (!smtpPass) return res.status(500).json({ error: 'Failed to decrypt SMTP password for chosen account' });
+      if (!smtpPass) return res.status(400).json({ error: 'Decryption failed for this SMTP account. Please delete and re-add the credentials in Settings.' });
     } catch (err) {
-      return res.status(500).json({ error: 'Error fetching SMTP account' });
+      return res.status(400).json({ error: 'Error fetching SMTP account' });
     }
 
     try {
